@@ -11,4 +11,3 @@ type Vector3i struct {
 	Y int
 	Z int
 }
-

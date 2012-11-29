@@ -5,75 +5,90 @@ import (
 )
 
 type Game struct {
-	updatables [] IUpdatable
-	drawables [] IDrawable
-	components [] IGameComponent	
-	running bool
+	Objects        *ObjectMgr
+	preupdatables  []IPreUpdatable
+	updatables     []IUpdatable
+	postupdatables []IPostUpdatable
+	drawables      []IDrawable
+	components     []IComponent
+	running        bool
 
 	FixedStep time.Duration
-	lock <- chan int
 }
 
 // Allocation
 func NewGame() *Game {
 	g := new(Game)
+	g.preupdatables = make([]IPreUpdatable, 8)[0:0]
 	g.updatables = make([]IUpdatable, 8)[0:0]
+	g.postupdatables = make([]IPostUpdatable, 8)[0:0]
 	g.drawables = make([]IDrawable, 8)[0:0]
-	g.components = make([]IGameComponent, 8)[0:0]
-	
-	g.lock = make(chan int)
+	g.components = make([]IComponent, 8)[0:0]
+	g.Objects = NewObjectMgr()
 	return g
 }
 
 // Public
-func (g *Game) AddComponent(gc IGameComponent) {
+func (g *Game) AddComponent(gc IComponent) {
 	g.components = append(g.components, gc)
-	
-	if up, ok := gc.(IUpdatable); ok {
-		g.updatables = append(g.updatables, up)
+
+	if u, ok := gc.(IPreUpdatable); ok {
+		g.preupdatables = append(g.preupdatables, u)
 	}
+
+	if u, ok := gc.(IUpdatable); ok {
+		g.updatables = append(g.updatables, u)
+	}
+
+	if u, ok := gc.(IPostUpdatable); ok {
+		g.postupdatables = append(g.postupdatables, u)
+	}
+
 	if dr, ok := gc.(IDrawable); ok {
 		g.drawables = append(g.drawables, dr)
 	}
-	
-	//if g.running {
-	//	gc.Initialise()
-	//}
 }
 
-func waitForUpdate(done chan bool, numobjs int) {
-	for i := 0; i < numobjs; i++ {
-		<- done
+func (g *Game) Tick(gt GameTime) {
+	g.Objects.Purge()
+	g.preUpdate(gt)
+	g.updateAndDraw(gt)
+	g.postUpdate(gt)
+}
+
+func (g *Game) preUpdate(gt GameTime) {
+	if l := len(g.preupdatables); l > 0 {
+		done := make(chan bool)
+		for _, val := range g.preupdatables {
+			go val.PreUpdate(gt, done)
+		}
+
+		defer waitForUpdate(done, l)
 	}
 }
 
-func (g *Game) Update(gt GameTime) {
-	_loop := len(g.updatables)
-	
-	
-	done := make(chan bool, _loop)
-	for _, val := range g.updatables {
-		go val.PreUpdate(gt, done)
-	}
-	waitForUpdate(done, _loop)
-
-	done = make(chan bool, _loop)
-	for _, val := range g.updatables {
-		go val.Update(gt, done)
+func (g *Game) updateAndDraw(gt GameTime) {
+	if l := len(g.updatables); l > 0 {
+		done := make(chan bool)
+		for _, val := range g.updatables {
+			go val.Update(gt, done)
+		}
+		defer waitForUpdate(done, l)
 	}
 
-	waitForUpdate(done, _loop)
-	
-	done = make(chan bool, _loop)
-	for _, val := range g.updatables {
-		go val.PostUpdate(gt, done)
-	}
-	waitForUpdate(done, _loop)
-}
-
-func (g *Game) Draw(gt GameTime) {
+	// Draw will happen while updates are happening.
 	for _, val := range g.drawables {
 		val.Draw(gt)
+	}
+}
+
+func (g *Game) postUpdate(gt GameTime) {
+	if l := len(g.postupdatables); l > 0 {
+		done := make(chan bool)
+		for _, val := range g.postupdatables {
+			go val.PostUpdate(gt, done)
+		}
+		defer waitForUpdate(done, l)
 	}
 }
 
@@ -81,7 +96,7 @@ func (g *Game) Run() {
 	g.initialise()
 
 	ticker := time.Tick(time.Second / 60.0)
-	
+
 	var total time.Duration
 	prev := time.Now()
 
@@ -91,15 +106,14 @@ func (g *Game) Run() {
 		total += elapsed
 		prev = now
 
-		t := GameTime{elapsed,total}
-		g.Update(t)
-		g.Draw(t)
-		
+		t := GameTime{elapsed, total}
+		g.Tick(t)
+
 		if !g.running {
 			break
 		}
 	}
-	
+
 	g.shutdown()
 }
 
@@ -116,5 +130,11 @@ func (g *Game) initialise() {
 func (g *Game) shutdown() {
 	for _, gc := range g.components {
 		gc.Shutdown()
+	}
+}
+
+func waitForUpdate(done chan bool, numobjs int) {
+	for i := 0; i < numobjs; i++ {
+		<-done
 	}
 }

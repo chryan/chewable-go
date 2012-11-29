@@ -5,6 +5,6 @@ import (
 )
 
 type GameTime struct {
-	Elapsed     time.Duration
-	Total       time.Duration
+	Elapsed time.Duration
+	Total   time.Duration
 }
