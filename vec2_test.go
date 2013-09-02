@@ -1,49 +1,48 @@
-package cbl_test
+// Copyright (C) 2013 Ryan Chew. All rights reserved.
+// Use of this source code is governed by a Apache 2.0
+// license that can be found in the LICENSE file.
+
+package cbl
 
 import (
-	"cbl"
-	"math"
 	"testing"
-)
 
-const (
-	VECX = 1
-	VECY = 2
+	"math"
 )
 
 func TestVec2(t *testing.T) {
-	vec := cbl.Vec2f{VECX, VECY}
+	var vec1 = Vec2f{1, 2}
+	var vec2 = Vec2f{6, 6}
 
-	if vec.Dot(vec) != 5 {
-		t.FailNow()
+	if dot := vec1.Dot(vec2); dot != vec1.X * vec2.X + vec1.Y * vec2.Y {
+		t.Fatalf("Dot product check failed: %v", dot )
 	}
 
-	if l := math.Sqrt(VECX*VECX + VECY*VECY); vec.Len() != l {
-		t.FailNow()
-	} else if norm := vec.Norm(); norm.X != VECX/l || norm.Y != VECY/l {
-		t.FailNow()
+	if l := float32(math.Sqrt(float64(vec1.X * vec1.X + vec1.Y*vec1.Y))); failNear(vec1.Len(), l) {
+		t.Fatalf("Length check failed: %v", l)
+	} else if norm := vec1.Norm(); failNear(norm.X, vec1.X/l) || failNear(norm.Y, vec1.Y/l) {
+		t.Fatalf("Normalize check failed: %v", norm)
 	}
 
-	test1 := vec.Add(vec).Sub(vec).Add(vec).Add(vec).Mul(100).Div(10)
+	test1 := vec1.Add(vec1).Sub(vec1).Add(vec1).Add(vec1).Mul(100).Div(10)
 
-	if test1.X != 30 || test1.Y != 60 {
-		t.FailNow()
+	if failNear(test1.X, 30) || failNear(test1.Y, 60.0) {
+		t.Fatalf("Add/Sub/Mul/Div check failed: %v", test1)
 	}
 
-	test2 := cbl.Vec2f{6, 6}
-
+	test2 := vec2
 	test1 = test2
 	test2.X, test2.Y = 10, 20
-
 	test1, test2 = test2, test1
 
-	if test2.X != 6 || test2.Y != 6 {
-		t.FailNow()
+	if failNear(test2.X, 6) || failNear(test2.Y, 6) {
+		t.Fatalf("test2 swap failed: %v", test2)
 	}
-	if test1.X != 10 || test1.Y != 20 {
-		t.FailNow()
+	if failNear(test1.X, 10) || failNear(test1.Y, 20) {
+		t.Fatalf("test1 swap failed: %v", test1)
 	}
-	if test1.Dist(test2) != math.Sqrt(4*4+14*14) {
-		t.FailNow()
+
+	if dist1, dist2 := test1.Dist(test2), float32(math.Sqrt(4*4+14*14)); failNear(dist1, dist2) {
+		t.Fatalf("Distance check failed: %v : %v", dist1, dist2)
 	}
 }

@@ -5,10 +5,13 @@
 package cbl
 
 import (
-	"time"
+	"math"
 )
 
-type GameTime struct {
-	Elapsed time.Duration
-	Total   time.Duration
+const (
+	EPSILON = 0.0001
+)
+
+func failNear(lhs, rhs float32) bool {
+	return math.Abs(float64(lhs - rhs)) > EPSILON
 }

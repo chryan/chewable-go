@@ -1,7 +1,10 @@
-package cbl_test
+// Copyright (C) 2013 Ryan Chew. All rights reserved.
+// Use of this source code is governed by a Apache 2.0
+// license that can be found in the LICENSE file.
+
+package cbl
 
 import (
-	"cbl"
 	"testing"
 )
 
@@ -14,7 +17,7 @@ func (t *TestOC) Shutdown() {
 }
 
 func TestObjectMgr(t *testing.T) {
-	om := cbl.NewObjectMgr()
+	om := NewObjectMgr()
 	obj := om.New("NewObject")
 
 	// Test that the object is valid.
@@ -36,7 +39,7 @@ func TestObjectMgr(t *testing.T) {
 }
 
 func TestObjectComponent(t *testing.T) {
-	om := cbl.NewObjectMgr()
+	om := NewObjectMgr()
 	obj := om.New("NewObject")
 
 	obj.Components.Add("TestOC", new(TestOC))

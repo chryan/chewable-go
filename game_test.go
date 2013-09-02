@@ -1,14 +1,18 @@
-package cbl_test
+// Copyright (C) 2013 Ryan Chew. All rights reserved.
+// Use of this source code is governed by a Apache 2.0
+// license that can be found in the LICENSE file.
+
+package cbl
 
 import (
-	"cbl"
-	"math/rand"
 	"testing"
+
+	"math/rand"
 	"time"
 )
 
 type TestComponent struct {
-	game  *cbl.Game
+	game  *Game
 	timer int
 
 	init     bool
@@ -16,7 +20,7 @@ type TestComponent struct {
 	str string
 }
 
-func (t *TestComponent) PreUpdate(time cbl.GameTime, done chan bool) {
+func (t *TestComponent) PreUpdate(time GameTime, done chan bool) {
 	t.timer++
 	switch {
 	case t.timer >= 60:
@@ -27,7 +31,7 @@ func (t *TestComponent) PreUpdate(time cbl.GameTime, done chan bool) {
 	done <- true
 }
 
-func (t *TestComponent) Update(gt cbl.GameTime, done chan bool) {
+func (t *TestComponent) Update(gt GameTime, done chan bool) {
 	time.Sleep(time.Duration(rand.Int31()%10) * time.Millisecond)
 
 	switch {
@@ -38,7 +42,7 @@ func (t *TestComponent) Update(gt cbl.GameTime, done chan bool) {
 	done <- true
 }
 
-func (t *TestComponent) PostUpdate(time cbl.GameTime, done chan bool) {
+func (t *TestComponent) PostUpdate(time GameTime, done chan bool) {
 	switch {
 	case t.timer >= 60:
 		t.str += "c"
@@ -46,7 +50,7 @@ func (t *TestComponent) PostUpdate(time cbl.GameTime, done chan bool) {
 	done <- true
 }
 
-func (t *TestComponent) Draw(gt cbl.GameTime) {
+func (t *TestComponent) Draw(gt GameTime) {
 }
 
 func (t *TestComponent) Initialise() {
@@ -58,7 +62,7 @@ func (t *TestComponent) Shutdown() {
 }
 
 func TestGameComponents(t *testing.T) {
-	g := cbl.NewGame()
+	g := NewGame()
 
 	var tc []*TestComponent
 	for i := 0; i < 100; i++ {

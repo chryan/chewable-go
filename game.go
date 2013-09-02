@@ -1,3 +1,7 @@
+// Copyright (C) 2013 Ryan Chew. All rights reserved.
+// Use of this source code is governed by a Apache 2.0
+// license that can be found in the LICENSE file.
+
 package cbl
 
 import (
@@ -9,7 +13,9 @@ type Game struct {
 	preupdatables  []IPreUpdatable
 	updatables     []IUpdatable
 	postupdatables []IPostUpdatable
+	predrawables   []IPreDrawable
 	drawables      []IDrawable
+	postdrawables  []IPostDrawable
 	components     []IComponent
 	running        bool
 
@@ -35,39 +41,39 @@ func (g *Game) AddComponent(gc IComponent) {
 	if u, ok := gc.(IPreUpdatable); ok {
 		g.preupdatables = append(g.preupdatables, u)
 	}
-
 	if u, ok := gc.(IUpdatable); ok {
 		g.updatables = append(g.updatables, u)
 	}
-
 	if u, ok := gc.(IPostUpdatable); ok {
 		g.postupdatables = append(g.postupdatables, u)
 	}
-
+	if dr, ok := gc.(IPreDrawable); ok {
+		g.predrawables = append(g.predrawables, dr)
+	}
 	if dr, ok := gc.(IDrawable); ok {
 		g.drawables = append(g.drawables, dr)
 	}
+	if dr, ok := gc.(IPostDrawable); ok {
+		g.postdrawables = append(g.postdrawables, dr)
+	}
 }
 
-func (g *Game) Tick(gt GameTime) {
-	g.Objects.Purge()
-	g.preUpdate(gt)
-	g.updateAndDraw(gt)
-	g.postUpdate(gt)
-}
-
-func (g *Game) preUpdate(gt GameTime) {
+func (g *Game) preStep(gt GameTime) {
 	if l := len(g.preupdatables); l > 0 {
 		done := make(chan bool)
 		for _, val := range g.preupdatables {
 			go val.PreUpdate(gt, done)
 		}
-
 		defer waitForUpdate(done, l)
+	}
+
+	// Draw will happen while updates are happening.
+	for _, val := range g.predrawables {
+		val.PreDraw(gt)
 	}
 }
 
-func (g *Game) updateAndDraw(gt GameTime) {
+func (g *Game) runStep(gt GameTime) {
 	if l := len(g.updatables); l > 0 {
 		done := make(chan bool)
 		for _, val := range g.updatables {
@@ -82,13 +88,18 @@ func (g *Game) updateAndDraw(gt GameTime) {
 	}
 }
 
-func (g *Game) postUpdate(gt GameTime) {
+func (g *Game) postStep(gt GameTime) {
 	if l := len(g.postupdatables); l > 0 {
 		done := make(chan bool)
 		for _, val := range g.postupdatables {
 			go val.PostUpdate(gt, done)
 		}
 		defer waitForUpdate(done, l)
+	}
+
+	// Draw will happen while updates are happening.
+	for _, val := range g.postdrawables {
+		val.PostDraw(gt)
 	}
 }
 
@@ -107,7 +118,7 @@ func (g *Game) Run() {
 		prev = now
 
 		t := GameTime{elapsed, total}
-		g.Tick(t)
+		g.tick(t)
 
 		if !g.running {
 			break
@@ -131,6 +142,13 @@ func (g *Game) shutdown() {
 	for _, gc := range g.components {
 		gc.Shutdown()
 	}
+}
+
+func (g *Game) tick(gt GameTime) {
+	g.Objects.Purge()
+	g.preStep(gt)
+	g.runStep(gt)
+	g.postStep(gt)
 }
 
 func waitForUpdate(done chan bool, numobjs int) {
