@@ -8,9 +8,14 @@ import (
 	"testing"
 )
 
+var sequencetest = make([]int, 0, 100)
+
 type TestComponent struct {
+	T *testing.T
+
 	game  *Game
 	timer int
+	value int
 
 	init     bool
 	shutdown bool
@@ -46,10 +51,17 @@ func (t *TestComponent) Draw(gt GameTime) {
 
 func (t *TestComponent) Initialise() {
 	t.init = true
+	sequencetest = append(sequencetest, t.value)
 }
 
 func (t *TestComponent) Shutdown() {
 	t.shutdown = true
+	l := len(sequencetest)-1
+	t.T.Logf("%v:%v", l, t.value)
+	if l != t.value || sequencetest[l] != t.value {
+		t.T.Fatalf("Initialise and shutdown sequence is out of order!")
+	}
+	sequencetest = sequencetest[:l]
 }
 
 func TestGameComponents(t *testing.T) {
@@ -57,7 +69,7 @@ func TestGameComponents(t *testing.T) {
 
 	var tc []*TestComponent
 	for i := 0; i < 100; i++ {
-		newtc := &TestComponent{g, 0, false, false, ""}
+		newtc := &TestComponent{t, g, 0, i, false, false, ""}
 		g.AddComponent(newtc)
 		tc = append(tc, newtc)
 		if tc[i].timer != 0 || tc[i].init || tc[i].shutdown {

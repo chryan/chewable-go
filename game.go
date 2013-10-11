@@ -145,8 +145,8 @@ func (g *Game) initialise() {
 }
 
 func (g *Game) shutdown() {
-	for _, gc := range g.components {
-		gc.Shutdown()
+	for i := len(g.components); i > 0; i-- {
+ 		g.components[i-1].Shutdown()
 	}
 }
 
