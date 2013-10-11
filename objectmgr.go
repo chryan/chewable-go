@@ -41,5 +41,3 @@ func (om *ObjectMgr) Purge() {
 		om.del_objects = nil
 	}
 }
-
-// Private

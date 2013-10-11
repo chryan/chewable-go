@@ -20,18 +20,25 @@ type Game struct {
 	running        bool
 
 	FixedStep time.Duration
+	DropFrames uint
 }
 
 // Allocation
 func NewGame() *Game {
-	g := new(Game)
-	g.preupdatables = make([]IPreUpdatable, 8)[0:0]
-	g.updatables = make([]IUpdatable, 8)[0:0]
-	g.postupdatables = make([]IPostUpdatable, 8)[0:0]
-	g.drawables = make([]IDrawable, 8)[0:0]
-	g.components = make([]IComponent, 8)[0:0]
-	g.Objects = NewObjectMgr()
-	return g
+	return &Game{
+		preupdatables: make([]IPreUpdatable, 8)[0:0],
+		updatables: make([]IUpdatable, 8)[0:0],
+		postupdatables: make([]IPostUpdatable, 8)[0:0],
+
+		predrawables: make([]IPreDrawable, 8)[0:0],
+		drawables: make([]IDrawable, 8)[0:0],
+		postdrawables: make([]IPostDrawable, 8)[0:0],
+
+		components: make([]IComponent, 8)[0:0],
+		Objects: NewObjectMgr(),
+		FixedStep: time.Second / 60.0,
+		DropFrames: 5,
+	}
 }
 
 // Public
@@ -59,75 +66,74 @@ func (g *Game) AddComponent(gc IComponent) {
 }
 
 func (g *Game) preStep(gt GameTime) {
-	if l := len(g.preupdatables); l > 0 {
-		done := make(chan bool)
-		for _, val := range g.preupdatables {
-			go val.PreUpdate(gt, done)
-		}
-		defer waitForUpdate(done, l)
+	for _, u := range g.preupdatables {
+		u.PreUpdate(gt)
 	}
-
-	// Draw will happen while updates are happening.
-	for _, val := range g.predrawables {
-		val.PreDraw(gt)
+	for _, d := range g.predrawables {
+		d.PreDraw(gt)
 	}
 }
 
 func (g *Game) runStep(gt GameTime) {
-	if l := len(g.updatables); l > 0 {
-		done := make(chan bool)
-		for _, val := range g.updatables {
-			go val.Update(gt, done)
-		}
-		defer waitForUpdate(done, l)
+	for _, u := range g.updatables {
+		u.Update(gt)
 	}
-
-	// Draw will happen while updates are happening.
 	for _, val := range g.drawables {
 		val.Draw(gt)
 	}
 }
 
 func (g *Game) postStep(gt GameTime) {
-	if l := len(g.postupdatables); l > 0 {
-		done := make(chan bool)
-		for _, val := range g.postupdatables {
-			go val.PostUpdate(gt, done)
-		}
-		defer waitForUpdate(done, l)
+	for _, u := range g.postupdatables {
+		u.PostUpdate(gt)
 	}
-
-	// Draw will happen while updates are happening.
-	for _, val := range g.postdrawables {
-		val.PostDraw(gt)
+	for _, d := range g.postdrawables {
+		d.PostDraw(gt)
 	}
 }
 
+// Start the game loop.
 func (g *Game) Run() {
 	g.initialise()
 
-	ticker := time.Tick(time.Second / 60.0)
+	//tick := time.Nanosecond * 10
 
-	var total time.Duration
+	var total, elapsed time.Duration
 	prev := time.Now()
 
 	g.running = true
-	for now := range ticker {
-		elapsed := now.Sub(prev)
-		total += elapsed
-		prev = now
+	
+	for g.running {
+		now := time.Now()
+		since := now.Sub(prev)
 
-		t := GameTime{elapsed, total}
-		g.tick(t)
+		if since > 0 {
+			elapsed += since
+			prev = now
 
-		if !g.running {
-			break
+			if elapsed > g.FixedStep {
+				totalreal := total + elapsed
+				elapsedreal := elapsed
+				for slow := uint(0); elapsed > g.FixedStep; slow++ {
+					total += g.FixedStep
+					elapsed -= g.FixedStep
+
+					t := GameTime{g.FixedStep, total, elapsedreal, totalreal, slow > 0}
+					g.tick(t)
+
+					if g.DropFrames > slow {
+						elapsed = 0
+						break
+					}
+				}
+			}
 		}
 	}
 
 	g.shutdown()
 }
 
+// Trigger the game to exit.
 func (g *Game) Exit() {
 	g.running = false
 }

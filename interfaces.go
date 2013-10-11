@@ -5,15 +5,15 @@
 package cbl
 
 type IPreUpdatable interface {
-	PreUpdate(gt GameTime, done chan bool)
+	PreUpdate(gt GameTime)
 }
 
 type IUpdatable interface {
-	Update(gt GameTime, done chan bool)
+	Update(gt GameTime)
 }
 
 type IPostUpdatable interface {
-	PostUpdate(gt GameTime, done chan bool)
+	PostUpdate(gt GameTime)
 }
 
 type IPreDrawable interface {

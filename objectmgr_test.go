@@ -8,7 +8,10 @@ import (
 	"testing"
 )
 
-type TestOC int
+type TestOC struct {
+	Intvalue int32
+	Strvalue string
+}
 
 func (t *TestOC) Initialise() {
 }
@@ -42,22 +45,23 @@ func TestObjectComponent(t *testing.T) {
 	om := NewObjectMgr()
 	obj := om.New("NewObject")
 
-	obj.Components.Add("TestOC", new(TestOC))
+	obj.Components.Add("testoc", &TestOC{})
 
-	if testoc := obj.Components.Get("TestOC"); testoc == nil {
+	if testoc := obj.Components.Get("testoc"); testoc == nil {
 		t.Fail()
 	} else {
 		if val, ok := testoc.(*TestOC); !ok {
 			t.Fail()
 		} else {
-			*val = 10
+			val.Intvalue = 10
+			val.Strvalue = "Testing"
 		}
 	}
 
-	if testoc := obj.Components.Get("TestOC"); testoc == nil {
+	if testoc := obj.Components.Get("testoc"); testoc == nil {
 		t.Fail()
 	} else {
-		if val, ok := testoc.(*TestOC); !ok || *val != 10 {
+		if val, ok := testoc.(*TestOC); !ok || val.Intvalue != 10 || val.Strvalue != "Testing" {
 			t.Fail()
 		}
 	}

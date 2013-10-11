@@ -28,7 +28,6 @@ func (o *Object) Shutdown() {
 
 func (oc *objectcomponents) Add(name string, comp IComponent) IComponent {
 	if c, ok := (*oc)[name]; ok {
-		// Log here.
 		return c
 	}
 

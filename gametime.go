@@ -11,4 +11,7 @@ import (
 type GameTime struct {
 	Elapsed time.Duration
 	Total   time.Duration
+	ElapsedReal time.Duration
+	TotalReal time.Duration
+	IsRunningSlowly bool
 }
