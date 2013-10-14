@@ -19,7 +19,7 @@ type TestComponent struct {
 
 	init     bool
 	shutdown bool
-	str string
+	str      string
 }
 
 func (t *TestComponent) PreUpdate(time GameTime) {
@@ -56,7 +56,7 @@ func (t *TestComponent) Initialise() {
 
 func (t *TestComponent) Shutdown() {
 	t.shutdown = true
-	l := len(sequencetest)-1
+	l := len(sequencetest) - 1
 	t.T.Logf("%v:%v", l, t.value)
 	if l != t.value || sequencetest[l] != t.value {
 		t.T.Fatalf("Initialise and shutdown sequence is out of order!")
@@ -81,7 +81,7 @@ func TestGameComponents(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		if tc[i].timer != 60 || !tc[i].init || !tc[i].shutdown || tc[i].str != "abc" {
-			t.Fatalf( "Component shutdown failed: %s", tc[i] )
+			t.Fatalf("Component shutdown failed: %s", tc[i])
 		}
 	}
 }

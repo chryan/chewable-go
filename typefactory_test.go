@@ -5,13 +5,13 @@
 package cbl
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
 
 type TestType struct {
-	TestValue int32
-	NameValue string
+	TestValue  int32
+	NameValue  string
 	InnerValue InnerType
 }
 

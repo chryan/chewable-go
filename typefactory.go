@@ -28,21 +28,21 @@ func (t *typeFactory) Add(addtype reflect.Type) *typeFactory {
 }
 
 func (t *typeFactory) New(typename, pkgname string) interface{} {
-	if typ, ok := t.typeMap[pkgname + "." + typename]; ok {
+	if typ, ok := t.typeMap[pkgname+"."+typename]; ok {
 		return reflect.New(typ).Elem().Interface()
 	}
 	return nil
 }
 
 func (t *typeFactory) Get(typename, pkgname string) reflect.Type {
-	if typ, ok := t.typeMap[pkgname + "." + typename]; ok {
+	if typ, ok := t.typeMap[pkgname+"."+typename]; ok {
 		return typ
 	}
 	return nil
 }
 
 func (t *typeFactory) Del(typename, pkgname string) {
-	delete(t.typeMap, pkgname + "." + typename)
+	delete(t.typeMap, pkgname+"."+typename)
 }
 
 func (t *typeFactory) Clear() {

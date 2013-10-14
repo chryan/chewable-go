@@ -13,5 +13,5 @@ const (
 )
 
 func failNear(lhs, rhs float32) bool {
-	return math.Abs(float64(lhs - rhs)) > EPSILON
+	return math.Abs(float64(lhs-rhs)) > EPSILON
 }

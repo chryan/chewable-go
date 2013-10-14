@@ -5,19 +5,19 @@
 package cbl
 
 import (
-	"testing"
 	"math"
+	"testing"
 )
 
 func TestVec3(t *testing.T) {
 	var vec1 = Vec3f{1, 2, 3}
 	var vec2 = Vec3f{6, 6, 6}
 
-	if dot := vec1.Dot(vec2); dot != vec1.X * vec2.X + vec1.Y * vec2.Y + vec1.Z * vec2.Z {
-		t.Fatalf("Dot product check failed: %v", dot )
+	if dot := vec1.Dot(vec2); dot != vec1.X*vec2.X+vec1.Y*vec2.Y+vec1.Z*vec2.Z {
+		t.Fatalf("Dot product check failed: %v", dot)
 	}
 
-	if l := float32(math.Sqrt(float64(vec1.X * vec1.X + vec1.Y*vec1.Y + vec1.Z*vec1.Z))); failNear(vec1.Len(), l) {
+	if l := float32(math.Sqrt(float64(vec1.X*vec1.X + vec1.Y*vec1.Y + vec1.Z*vec1.Z))); failNear(vec1.Len(), l) {
 		t.Fatalf("Length check failed: %v", l)
 	} else if norm := vec1.Norm(); failNear(norm.X, vec1.X/l) || failNear(norm.Y, vec1.Y/l) || failNear(norm.Z, vec1.Z/l) {
 		t.Fatalf("Normalize check failed: %v", norm)

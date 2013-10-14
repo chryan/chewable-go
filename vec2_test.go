@@ -14,11 +14,11 @@ func TestVec2(t *testing.T) {
 	var vec1 = Vec2f{1, 2}
 	var vec2 = Vec2f{6, 6}
 
-	if dot := vec1.Dot(vec2); dot != vec1.X * vec2.X + vec1.Y * vec2.Y {
-		t.Fatalf("Dot product check failed: %v", dot )
+	if dot := vec1.Dot(vec2); dot != vec1.X*vec2.X+vec1.Y*vec2.Y {
+		t.Fatalf("Dot product check failed: %v", dot)
 	}
 
-	if l := float32(math.Sqrt(float64(vec1.X * vec1.X + vec1.Y*vec1.Y))); failNear(vec1.Len(), l) {
+	if l := float32(math.Sqrt(float64(vec1.X*vec1.X + vec1.Y*vec1.Y))); failNear(vec1.Len(), l) {
 		t.Fatalf("Length check failed: %v", l)
 	} else if norm := vec1.Norm(); failNear(norm.X, vec1.X/l) || failNear(norm.Y, vec1.Y/l) {
 		t.Fatalf("Normalize check failed: %v", norm)
