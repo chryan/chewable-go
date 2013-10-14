@@ -9,7 +9,11 @@ import (
 )
 
 type Game struct {
-	Objects        *ObjectMgr
+	Objects    *ObjectMgr
+	Services   *Services
+	FixedStep  time.Duration
+	DropFrames uint
+
 	preupdatables  []IPreUpdatable
 	updatables     []IUpdatable
 	postupdatables []IPostUpdatable
@@ -18,26 +22,25 @@ type Game struct {
 	postdrawables  []IPostDrawable
 	components     []IComponent
 	running        bool
-
-	FixedStep time.Duration
-	DropFrames uint
 }
 
 // Allocation
 func NewGame() *Game {
 	return &Game{
-		preupdatables: make([]IPreUpdatable, 8)[0:0],
-		updatables: make([]IUpdatable, 8)[0:0],
+		Objects:    NewObjectMgr(),
+		Services:   NewServices(),
+		FixedStep:  time.Second / 60.0,
+		DropFrames: 5,
+
+		preupdatables:  make([]IPreUpdatable, 8)[0:0],
+		updatables:     make([]IUpdatable, 8)[0:0],
 		postupdatables: make([]IPostUpdatable, 8)[0:0],
 
-		predrawables: make([]IPreDrawable, 8)[0:0],
-		drawables: make([]IDrawable, 8)[0:0],
+		predrawables:  make([]IPreDrawable, 8)[0:0],
+		drawables:     make([]IDrawable, 8)[0:0],
 		postdrawables: make([]IPostDrawable, 8)[0:0],
 
 		components: make([]IComponent, 8)[0:0],
-		Objects: NewObjectMgr(),
-		FixedStep: time.Second / 60.0,
-		DropFrames: 5,
 	}
 }
 
@@ -102,7 +105,7 @@ func (g *Game) Run() {
 	prev := time.Now()
 
 	g.running = true
-	
+
 	for g.running {
 		now := time.Now()
 		since := now.Sub(prev)
@@ -146,7 +149,7 @@ func (g *Game) initialise() {
 
 func (g *Game) shutdown() {
 	for i := len(g.components); i > 0; i-- {
- 		g.components[i-1].Shutdown()
+		g.components[i-1].Shutdown()
 	}
 }
 
