@@ -10,87 +10,51 @@ import (
 
 type Game struct {
 	Objects    *ObjectMgr
+	Components *ComponentList
 	Services   *Services
 	FixedStep  time.Duration
 	DropFrames uint
-
-	preupdatables  []IPreUpdatable
-	updatables     []IUpdatable
-	postupdatables []IPostUpdatable
-	predrawables   []IPreDrawable
-	drawables      []IDrawable
-	postdrawables  []IPostDrawable
-	components     []IComponent
-	running        bool
+	running    bool
 }
 
 // Allocation
 func NewGame() *Game {
-	return &Game{
-		Objects:    NewObjectMgr(),
-		Services:   NewServices(),
-		FixedStep:  time.Second / 60.0,
-		DropFrames: 5,
-
-		preupdatables:  make([]IPreUpdatable, 8)[0:0],
-		updatables:     make([]IUpdatable, 8)[0:0],
-		postupdatables: make([]IPostUpdatable, 8)[0:0],
-
-		predrawables:  make([]IPreDrawable, 8)[0:0],
-		drawables:     make([]IDrawable, 8)[0:0],
-		postdrawables: make([]IPostDrawable, 8)[0:0],
-
-		components: make([]IComponent, 8)[0:0],
-	}
+	return NewGameWithServices(NewServices())
 }
 
-// Public
-func (g *Game) AddComponent(gc IComponent) {
-	g.components = append(g.components, gc)
-
-	if u, ok := gc.(IPreUpdatable); ok {
-		g.preupdatables = append(g.preupdatables, u)
-	}
-	if u, ok := gc.(IUpdatable); ok {
-		g.updatables = append(g.updatables, u)
-	}
-	if u, ok := gc.(IPostUpdatable); ok {
-		g.postupdatables = append(g.postupdatables, u)
-	}
-	if dr, ok := gc.(IPreDrawable); ok {
-		g.predrawables = append(g.predrawables, dr)
-	}
-	if dr, ok := gc.(IDrawable); ok {
-		g.drawables = append(g.drawables, dr)
-	}
-	if dr, ok := gc.(IPostDrawable); ok {
-		g.postdrawables = append(g.postdrawables, dr)
+func NewGameWithServices(services *Services) *Game {
+	return &Game{
+		Objects:    NewObjectMgr(),
+		Components: NewComponentList(),
+		Services:   services,
+		FixedStep:  time.Second / 60.0,
+		DropFrames: 5,
 	}
 }
 
 func (g *Game) preStep(gt GameTime) {
-	for _, u := range g.preupdatables {
+	for _, u := range g.Components.preupdatables {
 		u.PreUpdate(gt)
 	}
-	for _, d := range g.predrawables {
+	for _, d := range g.Components.predrawables {
 		d.PreDraw(gt)
 	}
 }
 
 func (g *Game) runStep(gt GameTime) {
-	for _, u := range g.updatables {
+	for _, u := range g.Components.updatables {
 		u.Update(gt)
 	}
-	for _, val := range g.drawables {
+	for _, val := range g.Components.drawables {
 		val.Draw(gt)
 	}
 }
 
 func (g *Game) postStep(gt GameTime) {
-	for _, u := range g.postupdatables {
+	for _, u := range g.Components.postupdatables {
 		u.PostUpdate(gt)
 	}
-	for _, d := range g.postdrawables {
+	for _, d := range g.Components.postdrawables {
 		d.PostDraw(gt)
 	}
 }
@@ -142,15 +106,11 @@ func (g *Game) Exit() {
 }
 
 func (g *Game) initialise() {
-	for _, gc := range g.components {
-		gc.Initialise()
-	}
+	g.Components.Initialise()
 }
 
 func (g *Game) shutdown() {
-	for i := len(g.components); i > 0; i-- {
-		g.components[i-1].Shutdown()
-	}
+	g.Components.Shutdown()
 }
 
 func (g *Game) tick(gt GameTime) {
