@@ -47,22 +47,14 @@ func TestObjectComponent(t *testing.T) {
 
 	obj.Components.Add("testoc", &TestOC{})
 
-	if testoc := obj.Components.Get("testoc"); testoc == nil {
-		t.Fail()
+	if val, ok := obj.Components.Get("testoc").(*TestOC); ok {
+		val.Intvalue = 10
+		val.Strvalue = "Testing"
 	} else {
-		if val, ok := testoc.(*TestOC); !ok {
-			t.Fail()
-		} else {
-			val.Intvalue = 10
-			val.Strvalue = "Testing"
-		}
+		t.Fail()
 	}
 
-	if testoc := obj.Components.Get("testoc"); testoc == nil {
+	if val, ok := obj.Components.Get("testoc").(*TestOC); !ok || val.Intvalue != 10 || val.Strvalue != "Testing" {
 		t.Fail()
-	} else {
-		if val, ok := testoc.(*TestOC); !ok || val.Intvalue != 10 || val.Strvalue != "Testing" {
-			t.Fail()
-		}
 	}
 }

@@ -70,7 +70,7 @@ func TestGameComponents(t *testing.T) {
 	var tc []*TestComponent
 	for i := 0; i < 100; i++ {
 		newtc := &TestComponent{t, g, 0, i, false, false, ""}
-		g.AddComponent(newtc)
+		g.Components.Add(newtc)
 		tc = append(tc, newtc)
 		if tc[i].timer != 0 || tc[i].init || tc[i].shutdown {
 			t.Fatalf("Component initialise failed: %s", tc[i])
