@@ -63,8 +63,6 @@ func (g *Game) postStep(gt GameTime) {
 func (g *Game) Run() {
 	g.initialise()
 
-	//tick := time.Nanosecond * 10
-
 	var total, elapsed time.Duration
 	prev := time.Now()
 
@@ -88,7 +86,7 @@ func (g *Game) Run() {
 					t := GameTime{g.FixedStep, total, elapsedreal, totalreal, slow > 0}
 					g.tick(t)
 
-					if g.DropFrames > slow {
+					if slow >= g.DropFrames {
 						elapsed = 0
 						break
 					}
